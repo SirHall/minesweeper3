@@ -4,14 +4,18 @@ import * as CellBasic from "./CellBasic";
 import moment = require("moment");
 
 const cellPixSize = 16;
-const gridCellsPerSide = 32;
-const gridPixSize = gridCellsPerSide * cellPixSize;
+const gridCellsPerSide = 20;
 
 //Define the hex cell
 const Hex = Honeycomb.extendHex(CellBasic.CreateCell());
 
 const grid = Honeycomb.defineGrid(Hex)// 2a. create a rectangular grid:
 const rect = grid.rectangle({ width: gridCellsPerSide, height: gridCellsPerSide });
+
+
+let gridPixWidth = rect[rect.length - 1].toPoint().x + (cellPixSize * 2);
+let gridPixHeight = rect[rect.length - 1].toPoint().y + (cellPixSize * 2);
+
 
 //Setup each cell
 rect.forEach((hex, index) => {
@@ -27,25 +31,23 @@ const p5Instance = new p5(
     (sketch: p5) => {
         sketch.setup = () => {
             sketch.createCanvas(
-                gridPixSize,
-                gridPixSize
+                gridPixWidth,
+                gridPixHeight
             );
             sketch.mousePressed =
                 function () {
                     forceRedraw = true;
                     // convert point to hex (coordinates)
                     let hexCoordinates = grid.pointToHex(sketch.mouseX, sketch.mouseY)
-                    // hexCoordinates.
                     // get the actual hex from the grid
                     let clicked = rect.get(hexCoordinates);
-
-                    clicked.Reveal();
+                    //Reveal this tile
+                    if (clicked)
+                        clicked.Reveal();
                 };
         };
 
         sketch.draw = () => {
-            // sketch.background("black");
-
             let now = moment();
             if ((moment.duration(now.diff(lastRender)) > moment.duration(1000, 'ms')) || forceRedraw) {
                 forceRedraw = false;
@@ -53,6 +55,7 @@ const p5Instance = new p5(
 
                 sketch.fill("black");
                 sketch.stroke("white");
+                sketch.strokeWeight(2);
                 sketch.push();
                 rect.forEach(hex => {
                     hex.Draw(sketch);
