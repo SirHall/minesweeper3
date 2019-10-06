@@ -1,55 +1,44 @@
 import * as p5 from "p5";
-// import * as p5_glob from "p5/global";
-// import * as p5_const from "p5/constants";
-// import * as p5_lits from "p5/literals";
-
-
-// const Honeycomb = require('honeycomb-grid')
-// import * as p5 from "../node_modules/p5/lib/p5";
-import * as Honeycomb from "../node_modules/honeycomb-grid/src/honeycomb"
+import * as Honeycomb from "honeycomb-grid";
+import * as CellBasic from "./CellBasic";
+import * as CellWater from "./CellWater";
 
 const cellPixSize = 16;
 const gridCellsPerSide = 32;
 const gridPixSize = gridCellsPerSide * cellPixSize;
 
-const grid = Honeycomb.defineGrid()// 2a. create a rectangular grid:
+//Define the hex cell
+const Hex = Honeycomb.extendHex(CellWater.CreateCellWater());
+
+const grid = Honeycomb.defineGrid(Hex)// 2a. create a rectangular grid:
 const rect = grid.rectangle({ width: gridCellsPerSide, height: gridCellsPerSide });
 
 
-//Simply used to draw a single polygon
-function polygon(x, y, radius, npoints, rotation, sketch: p5) {
-    let angle = sketch.TWO_PI / npoints;
-
-    sketch.beginShape();
-    for (let a = 0; a < sketch.TWO_PI; a += angle) {
-        let sx = x + sketch.cos(a + rotation) * radius;
-        let sy = y + sketch.sin(a + rotation) * radius;
-        sketch.vertex(sx, sy);
-    }
-    sketch.endShape(sketch.CLOSE);
-}
-
 const p5Instance = new p5(
     (sketch: p5) => {
-
         sketch.setup = () => {
             sketch.createCanvas(
                 gridPixSize,
                 gridPixSize
             );
+            document.addEventListener('click', ({ offsetX, offsetY }) => {
+                // convert point to hex (coordinates)
+                const hexCoordinates = grid.pointToHex(offsetX, offsetY)
+                // get the actual hex from the grid
+                console.log(rect.get(hexCoordinates))
+            })
         };
 
         sketch.draw = () => {
             sketch.background(0);
             sketch.fill(255);
+            sketch.push();
             rect.forEach(hex => {
-                const point = hex.toPoint();
-                sketch.push();
-                // sketch.rotate(60);
-                // sketch.translate(cellSize * 0.8, cellSize * 0.5);
-                polygon(point.x * cellPixSize, point.y * cellPixSize, cellPixSize, 6, sketch.radians(30), sketch);
-                sketch.pop();
+                hex.Draw();
+                // const point = hex.toPoint();
+                // polygon(point.x, point.y, this.size, 6, sketch.radians(30), sketch);
             });
+            sketch.pop();
         };
     }
 );
