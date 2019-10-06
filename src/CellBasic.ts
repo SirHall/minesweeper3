@@ -69,8 +69,6 @@ export function CreateCell(): CellBasic {
             point.y += this.size.yRadius;
             sketch.fill("black");
             polygon(point.x, point.y, this.size.xRadius, 6, sketch.radians(30), sketch);
-            sketch.fill("red");
-            sketch.circle(point.x, point.y, 3);
         },
         DrawRevealed(sketch: p5) {
             const point = this.ourHex.toPoint();
