@@ -25,6 +25,10 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
     },
     plugins: [
-        new HtmlWebpackPlugin({ title: "Minesweeper", template: "./src/index.html", favicon: "./res/mine.ico" })
+        new HtmlWebpackPlugin({
+            title: "Minesweeper",
+            template: "./src/index.html",
+            favicon: "./res/mine.ico",
+        })
     ],
 };
