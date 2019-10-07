@@ -2,19 +2,22 @@ import * as Honeycomb from "honeycomb-grid";
 import * as p5 from "p5";
 import moment = require("moment");
 
+const possibleColors = ["#ff595e", "#625daf", "#ffca3a"];
+
 export interface CellBasic {
     cellType: string;
     size: any;
     orientation: any;
     revealed: boolean;
 
-    grid: Honeycomb.Grid;
+    grid: Honeycomb.Grid<Honeycomb.Hex<CellBasic>>;
     ourIndex: number;
     ourHex: Honeycomb.Hex<CellBasic>;
 
     color: string;
+    neighbours: number;
 
-    Assign(grid: Honeycomb.Grid, ourIndex: number, ourHex: Honeycomb.Hex<CellBasic>): void;
+    Assign(grid: Honeycomb.Grid<Honeycomb.Hex<CellBasic>>, ourIndex: number, ourHex: Honeycomb.Hex<CellBasic>): void;
 
     Reveal(): void;
 
@@ -48,14 +51,34 @@ export function CreateCell(): CellBasic {
         ourIndex: -1,
         ourHex: null,
         color: "blue",
-        Assign(grid: Honeycomb.Grid, ourIndex: number, ourHex: Honeycomb.Hex<CellBasic>) {
+        neighbours: 0,
+        Assign(grid: Honeycomb.Grid<Honeycomb.Hex<CellBasic>>, ourIndex: number, ourHex: Honeycomb.Hex<CellBasic>) {
             this.grid = grid;
             this.ourIndex = ourIndex;
             this.ourHex = ourHex;
             this.lastRender = moment();
+            this.color = possibleColors[Math.floor(Math.random() * possibleColors.length)];
         },
+
         Reveal() {
+            if (this.revealed)
+                return;
             this.revealed = true;
+            //Find the number of neighbours that are the same color
+            this.grid.neighborsOf(this.ourHex).forEach((h) => {
+                if (h && (h.color === this.color)) {
+                    this.neighbours++;
+                    if (h.revealed) {
+                        //We have a neighbour that has previously been revealed, and is the same color as us
+                        this.grid.forEach(element => {
+                            if (!element.revealed)
+                                element.revealed = true;
+                        });
+                        return;
+                    }
+                }
+            });
+
         },
         Draw(sketch: p5) {
             if (this.revealed)
@@ -76,6 +99,9 @@ export function CreateCell(): CellBasic {
             point.x += this.size.xRadius;
             point.y += this.size.yRadius;
             polygon(point.x, point.y, this.size.xRadius, 6, sketch.radians(30), sketch);
+
+            if (this.neighbours > 0)
+                sketch.text(this.neighbours, point.x, point.y);
         }
     };
 }
